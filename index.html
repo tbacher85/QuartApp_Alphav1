@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en" class=""> <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quartz - ChatGPT Prompt Explorer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Sora:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        /* Custom Base Styles & Theme Variables */
+        :root {
+            --quartz-light-bg: #f8f7ff;
+            --quartz-dark-bg: #110f1a; /* Darker base */
+            --quartz-card-light-bg: rgba(255, 255, 255, 0.65); /* Slightly less transparent */
+            --quartz-card-dark-bg: rgba(48, 38, 70, 0.65);
+            --quartz-border-light: rgba(203, 195, 227, 0.4);
+            --quartz-border-dark: rgba(110, 94, 152, 0.4);
+            --quartz-primary: #a78bfa; /* Medium Violet */
+            --quartz-secondary: #f472b6; /* Pink */
+            --quartz-accent: #c4b5fd; /* Lighter Violet */
+            --quartz-text-light: #1e1b4b; /* Dark Indigo */
+            --quartz-text-dark: #e9d5ff; /* Light Lavender */
+            --quartz-text-dim-light: #64748b;
+            --quartz-text-dim-dark: #94a3b8;
+            --quartz-glow: rgba(167, 139, 250, 0.4);
+            --quartz-shine-light: rgba(255, 255, 255, 0.4);
+            --quartz-shine-dark: rgba(233, 213, 255, 0.15); /* Lavender shine for dark */
+        }
+
+        /* --- Enhanced Background --- */
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--quartz-light-bg); /* Fallback */
+            color: var(--quartz-text-light);
+            transition: background-color 0.3s ease, color 0.3s ease;
+            position: relative; /* Needed for pseudo-elements */
+            overflow-x: hidden; /* Prevent horizontal scroll */
+            min-height: 100vh;
+        }
+
+        body::before, body::after {
+            content: '';
+            position: fixed; /* Use fixed to stay static during scroll */
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: -1; /* Behind content */
+            pointer-events: none;
+            opacity: 0.6; /* Adjust opacity as needed */
+            background-attachment: fixed;
+            transition: opacity 0.5s ease; /* Smooth transition for dark mode */
+        }
+
+        /* Light Mode Background Layers */
+        body::before {
+             background: linear-gradient(135deg, rgba(244, 114, 182, 0.1) 0%, transparent 50%), /* Light Pink */
+                         radial-gradient(ellipse at 90% 10%, rgba(196, 181, 253, 0.2) 0%, transparent 60%); /* Light Violet */
+             animation: subtleRotate 50s linear infinite alternate;
+             opacity: 0.6;
+        }
+        body::after {
+             background: linear-gradient(-45deg, rgba(167, 139, 250, 0.15) 0%, transparent 50%), /* Medium Violet */
+                         radial-gradient(ellipse at 10% 90%, rgba(255, 255, 255, 0.3) 0%, transparent 60%); /* Whiteish highlight */
+             animation: subtleRotate 60s linear infinite alternate-reverse;
+              opacity: 0.7;
+        }
+
+        /* Dark Mode Background Layers & Body */
+         .dark body {
+             background-color: var(--quartz-dark-bg);
+             color: var(--quartz-text-dark);
+         }
+        .dark body::before {
+             background: linear-gradient(135deg, rgba(167, 139, 250, 0.2) 0%, transparent 50%), /* Amethyst */
+                         radial-gradient(ellipse at 80% 20%, rgba(244, 114, 182, 0.15) 0%, transparent 60%); /* Pink */
+             opacity: 0.35; /* Adjusted opacity for dark mode */
+        }
+        .dark body::after {
+             background: linear-gradient(-45deg, rgba(196, 181, 253, 0.18) 0%, transparent 50%), /* Light Violet */
+                         radial-gradient(ellipse at 20% 80%, rgba(99, 102, 241, 0.12) 0%, transparent 60%); /* Indigo touch */
+             opacity: 0.4; /* Adjusted opacity for dark mode */
+        }
+
+        @keyframes subtleRotate {
+          from { transform: rotate(0deg) scale(1.8); } /* Scale ensures coverage */
+          to { transform: rotate(360deg) scale(1.8); }
+        }
+
+
+        h1, h2, h3 {
+            font-family: 'Sora', sans-serif;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            position: relative; /* Ensure content is above bg pseudo-elements */
+            z-index: 1;
+        }
+
+        /* --- Updated Prompt Card --- */
+        .prompt-card {
+            background-color: var(--quartz-card-light-bg);
+            border: 1px solid var(--quartz-border-light);
+            backdrop-filter: blur(14px); /* Slightly more blur */
+            -webkit-backdrop-filter: blur(14px);
+            transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.07);
+            position: relative; /* For shine pseudo-element */
+            overflow: hidden; /* Contain shine */
+            border-radius: 16px; /* Match border-radius */
+        }
+        .dark .prompt-card {
+            background-color: var(--quartz-card-dark-bg);
+            border: 1px solid var(--quartz-border-dark);
+             box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+        }
+         .prompt-card:hover {
+             transform: translateY(-5px) scale(1.01); /* Subtle lift */
+             box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+         }
+         .dark .prompt-card:hover {
+              box-shadow: 0 12px 35px rgba(0,0,0,0.35), 0 0 20px var(--quartz-glow);
+              border-color: rgba(167, 139, 250, 0.6);
+         }
+
+        /* Shine Effect */
+        .prompt-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -150%; /* Start off-screen left */
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                100deg,
+                rgba(255, 255, 255, 0) 10%,
+                var(--quartz-shine-light) 50%,
+                rgba(255, 255, 255, 0) 90%
+            );
+             transform: skewX(-25deg);
+            transition: left 0.7s cubic-bezier(0.23, 1, 0.32, 1); /* Slightly slower shine */
+            z-index: 1;
+            pointer-events: none;
+            opacity: 0; /* Hidden by default */
+        }
+        .dark .prompt-card::after {
+             background: linear-gradient(
+                100deg,
+                rgba(233, 213, 255, 0) 10%,
+                var(--quartz-shine-dark) 50%,
+                rgba(233, 213, 255, 0) 90%
+            );
+        }
+        .prompt-card:hover::after {
+            left: 150%; /* Move shine across */
+             opacity: 1; /* Show on hover */
+        }
+
+        /* Ensure card content is above the shine */
+        .prompt-header, .prompt-content {
+            position: relative;
+            z-index: 2;
+        }
+        .prompt-header { /* Slightly style header */
+             border-bottom: 1px solid var(--quartz-border-light);
+             transition: border-color 0.3s ease;
+             padding: 1rem; /* Consistent padding */
+        }
+         .dark .prompt-header {
+              border-bottom-color: var(--quartz-border-dark);
+         }
+        .prompt-content {
+            padding: 1rem; /* Consistent padding */
+        }
+
+
+        /* Navigation Styles (Unchanged) */
+        .nav-tab {
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+        .nav-tab.active {
+            border-bottom-color: var(--quartz-primary);
+            color: var(--quartz-primary);
+            text-shadow: 0 0 8px var(--quartz-glow);
+        }
+         .dark .nav-tab.active {
+              color: var(--quartz-accent);
+              border-bottom-color: var(--quartz-accent);
+               text-shadow: 0 0 10px var(--quartz-glow);
+         }
+        .nav-tab:not(.active):hover {
+             border-bottom-color: var(--quartz-accent);
+        }
+        .dark .nav-tab:not(.active):hover {
+             border-bottom-color: rgba(167, 139, 250, 0.5);
+        }
+
+
+        /* Custom Input Styles (Unchanged) */
+        .variable-input {
+            background-color: rgba(255, 255, 255, 0.7);
+            border: 1px solid var(--quartz-border-light);
+            transition: all 0.3s ease;
+        }
+        .dark .variable-input {
+            background-color: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--quartz-border-dark);
+            color: var(--quartz-text-dark);
+        }
+        .variable-input:focus {
+            border-color: var(--quartz-primary);
+            box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.3); /* Focus ring */
+            outline: none;
+        }
+         .dark .variable-input:focus {
+             border-color: var(--quartz-accent);
+             background-color: rgba(0, 0, 0, 0.3);
+             box-shadow: 0 0 0 3px rgba(196, 181, 253, 0.4); /* Dark mode focus ring */
+         }
+        .variable-input::placeholder {
+             color: var(--quartz-text-dim-light);
+             opacity: 0.8;
+        }
+         .dark .variable-input::placeholder {
+              color: var(--quartz-text-dim-dark);
+              opacity: 0.7;
+         }
+
+        /* Custom Button Styles (Unchanged) */
+        .btn-primary {
+            background: linear-gradient(135deg, var(--quartz-primary), var(--quartz-accent));
+            color: white;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(167, 139, 250, 0.3);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+        .btn-primary:hover {
+             transform: translateY(-1px);
+             box-shadow: 0 4px 15px rgba(167, 139, 250, 0.5);
+        }
+        .btn-secondary {
+            background-color: rgba(255, 255, 255, 0.7);
+            border: 1px solid var(--quartz-border-light);
+            color: var(--quartz-primary);
+             transition: all 0.3s ease;
+        }
+         .dark .btn-secondary {
+            background-color: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--quartz-border-dark);
+            color: var(--quartz-accent);
+         }
+         .btn-secondary:hover {
+             background-color: rgba(255, 255, 255, 0.9);
+             border-color: var(--quartz-primary);
+         }
+         .dark .btn-secondary:hover {
+              background-color: rgba(0, 0, 0, 0.3);
+              border-color: var(--quartz-accent);
+         }
+
+
+        /* Floating Gem Animation (Unchanged) */
+        @keyframes floatGem {
+            0% { transform: translateY(0px) rotate(0deg) scale(1); }
+            50% { transform: translateY(-15px) rotate(10deg) scale(1.05); }
+            100% { transform: translateY(0px) rotate(0deg) scale(1); }
+        }
+        @keyframes sparkleGem {
+            0%, 100% { box-shadow: 0 0 15px 5px var(--quartz-glow); opacity: 0.8; }
+            50% { box-shadow: 0 0 25px 10px var(--quartz-glow); opacity: 1; }
+        }
+        .floating-gem {
+            width: 50px;
+            height: 50px;
+            background: radial-gradient(ellipse at center, rgba(255,255,255,0.8) 0%, var(--quartz-primary) 70%);
+            border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%; /* Crystal-like shape */
+            animation: floatGem 6s ease-in-out infinite, sparkleGem 3s ease-in-out infinite alternate;
+            transition: background 0.3s ease;
+        }
+         .dark .floating-gem {
+              background: radial-gradient(ellipse at center, rgba(233, 213, 255, 0.8) 0%, var(--quartz-accent) 70%);
+         }
+
+        /* Smooth section transition (Unchanged) */
+        .prompt-section {
+             transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+             opacity: 0;
+             transform: translateY(10px); /* Start slightly down */
+        }
+        .prompt-section.visible {
+            opacity: 1;
+            transform: translateY(0px); /* Move up to original position */
+        }
+        .prompt-section.hidden {
+           /* Ensure it's truly hidden for layout purposes */
+           position: absolute;
+           width: 100%; /* Take up space initially to avoid jump */
+           pointer-events: none;
+           /* Height/display none applied via JS logic if needed */
+        }
+        .prompt-content.collapsed {
+            display: none;
+        }
+
+        /* Scrollbar Styling (Unchanged) */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background-color: var(--quartz-accent);
+            border-radius: 20px;
+            border: 2px solid var(--quartz-light-bg);
+        }
+        .dark ::-webkit-scrollbar-thumb {
+            background-color: var(--quartz-primary);
+             border-color: var(--quartz-dark-bg);
+        }
+
+    </style>
+</head>
+<body class="min-h-screen text-sm md:text-base">
+
+    <div class="fixed bottom-6 right-6 z-50">
+        <div class="floating-gem"></div>
+    </div>
+
+    <button id="darkModeToggle" class="fixed top-4 right-4 z-50 p-2 rounded-full bg-white/70 dark:bg-black/50 backdrop-blur-sm border border-gray-200 dark:border-gray-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500 dark:focus:ring-offset-gray-900">
+        <svg id="sunIcon" class="w-5 h-5 text-yellow-500 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+        <svg id="moonIcon" class="w-5 h-5 text-violet-500 dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+    </button>
+
+    <div class="container mx-auto px-4 py-8 max-w-7xl">
+        <header class="text-center mb-12">
+            <h1 class="text-4xl md:text-5xl font-bold mb-3 bg-clip-text text-transparent bg-gradient-to-r from-pink-500 via-violet-500 to-indigo-500 dark:from-pink-400 dark:via-violet-400 dark:to-indigo-400">
+                Quartz Prompts
+            </h1>
+            <p class="text-lg text-gray-600 dark:text-gray-400">Explore ChatGPT Prompts for SaaS Entrepreneurs</p>
+        </header>
+
+        <nav class="mb-10 border-b border-gray-200 dark:border-gray-700 overflow-x-auto whitespace-nowrap">
+            <ul id="categoryNav" class="flex space-x-6 md:space-x-8 text-gray-500 dark:text-gray-400">
+                </ul>
+        </nav>
+
+        <main id="promptSections" class="relative min-h-[500px]">
+            </main>
+    </div>
+
+    <script>
+        const promptData = [
+            {
+                category: "Market Trends & Opportunities",
+                id: "market-trends",
+                prompts: [
+                    "Analyze current market trends for SaaS solutions in the [specific industry, e.g., renewable energy] sector. Identify the top 3 underserved niches or emerging opportunities for a new product.",
+                    "Generate a report on the potential impact of [emerging technology, e.g., AI-driven personalization] on the [specific SaaS category, e.g., CRM] market over the next 5 years. What are the key threats and opportunities?",
+                    "Identify key demographic and psychographic shifts affecting demand for [type of SaaS product, e.g., project management tools] among [target audience, e.g., remote creative agencies].",
+                    "Explore the viability of a freemium model for a SaaS product targeting [specific customer segment, e.g., independent freelancers] in the [market niche, e.g., proposal generation] space. What are the pros and cons?",
+                    "What are the adjacent market opportunities for a successful SaaS product that currently offers [core functionality, e.g., social media scheduling]? Suggest 3 potential expansion areas."
+                ]
+            },
+            {
+                category: "Competitive Analysis",
+                id: "competitive-analysis",
+                prompts: [
+                    "Provide a comprehensive competitive analysis of the top 3 players in the [specific SaaS market, e.g., email marketing automation] space. Focus on pricing, key features, target audience, and unique selling propositions (USPs). My product idea is [brief description of your product idea].",
+                    "Identify the primary weaknesses and customer complaints regarding [competitor SaaS product name]. How can my product, focused on [your key differentiator], capitalize on these gaps?",
+                    "Analyze the marketing and sales strategies of [competitor name]. What channels are they using effectively? What is their apparent customer acquisition cost (CAC) strategy?",
+                    "Compare the user onboarding experience of [Competitor A] and [Competitor B]. What are the key takeaways for designing a frictionless onboarding flow for my SaaS product targeting [your target audience]?",
+                    "Generate a feature comparison table for my proposed SaaS product offering [list key features] against competitors like [Competitor A], [Competitor B], and [Competitor C]."
+                ]
+            },
+            {
+                category: "Customer Insights & Segmentation",
+                id: "customer-insights",
+                prompts: [
+                    "Develop 3 detailed user personas for a SaaS product designed for [target role, e.g., HR managers] in [company size, e.g., mid-sized tech companies]. Include pain points, goals, motivations, and preferred communication channels.",
+                    "Generate a list of 10 potential interview questions to uncover the primary challenges and unmet needs of [target customer segment, e.g., e-commerce store owners] related to [problem area your SaaS solves, e.g., inventory management].",
+                    "Analyze online reviews and forum discussions (like Reddit, G2, Capterra) for existing solutions in the [specific SaaS category, e.g., appointment scheduling] market. What are the most common frustrations and desired features mentioned by users?",
+                    "Suggest effective market segmentation strategies for a SaaS product offering [unique value proposition, e.g., AI-powered financial forecasting] for [broad industry, e.g., small businesses]. Consider firmographic, behavioral, and needs-based segmentation.",
+                    "Outline a customer journey map for a typical user of a [type of SaaS product, e.g., online course platform], from initial awareness to becoming a loyal advocate. Identify key touchpoints and potential friction areas."
+                ]
+            },
+            {
+                category: "Product Development & Features",
+                id: "product-development",
+                prompts: [
+                    "Brainstorm a list of 10 innovative features for a SaaS product aimed at solving [specific problem, e.g., reducing meeting overload] for [target user, e.g., remote teams]. Prioritize based on potential impact and feasibility.",
+                    "Generate user stories (in the format 'As a [user type], I want to [action], so that [benefit]') for the core functionality of a SaaS product focused on [product core concept, e.g., collaborative document editing].",
+                    "Outline the key components and considerations for designing an intuitive user interface (UI) for a SaaS dashboard displaying [type of data, e.g., website analytics] for [target audience skill level, e.g., non-technical marketers].",
+                    "Suggest potential technology stacks (frontend, backend, database) suitable for building a scalable SaaS application with features like [feature 1, e.g., real-time chat] and [feature 2, e.g., user permissions]. Consider trade-offs.",
+                    "Describe 5 potential integrations with other popular tools (e.g., Slack, Google Workspace, Zapier) that would significantly enhance the value of a SaaS product for [target market, e.g., sales teams] focused on [product function, e.g., lead enrichment]."
+                ]
+            }
+        ];
+
+        const categoryNav = document.getElementById('categoryNav');
+        const promptSectionsContainer = document.getElementById('promptSections');
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        const sunIcon = document.getElementById('sunIcon');
+        const moonIcon = document.getElementById('moonIcon');
+
+        // --- Dark Mode Logic ---
+        const applyDarkMode = (isDark) => {
+            if (isDark) {
+                document.documentElement.classList.add('dark');
+                sunIcon.classList.remove('hidden');
+                moonIcon.classList.add('hidden');
+            } else {
+                document.documentElement.classList.remove('dark');
+                sunIcon.classList.add('hidden');
+                moonIcon.classList.remove('hidden');
+            }
+        };
+
+        const toggleDarkMode = () => {
+            const isDarkMode = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('darkMode', isDarkMode);
+            applyDarkMode(isDarkMode);
+        };
+
+        // Check local storage for theme preference
+        const savedDarkMode = localStorage.getItem('darkMode');
+        applyDarkMode(savedDarkMode === 'true');
+
+        darkModeToggle.addEventListener('click', toggleDarkMode);
+
+
+        // --- Initialization ---
+        function initApp() {
+            renderNavigation();
+            renderAllSections();
+            // Show the first category by default
+            showSection(promptData[0].id);
+            setActiveTab(promptData[0].id);
+
+            // Add event listeners for nav clicks (must be done after rendering)
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const categoryId = e.target.dataset.target;
+                    showSection(categoryId);
+                    setActiveTab(categoryId);
+                });
+            });
+        }
+
+        // --- Render Navigation ---
+        function renderNavigation() {
+            categoryNav.innerHTML = promptData.map(cat => `
+                <li>
+                    <button class="nav-tab py-3 px-1 md:px-2 font-medium text-sm md:text-base" data-target="${cat.id}">
+                        ${cat.category}
+                    </button>
+                </li>
+            `).join('');
+        }
+
+         // --- Render All Sections (Initially Hidden but positioned) ---
+        function renderAllSections() {
+            promptSectionsContainer.innerHTML = promptData.map(cat => `
+                <section id="${cat.id}" class="prompt-section hidden absolute top-0 left-0 w-full">
+                     <h2 class="text-2xl md:text-3xl font-semibold mb-6 text-violet-600 dark:text-violet-400">${cat.category}</h2>
+                     <div class="prompt-list grid grid-cols-1 lg:grid-cols-2 gap-6">
+                         ${cat.prompts.map((promptStr, index) => createPromptCardHTML(promptStr, `${cat.id}-prompt-${index}`)).join('')}
+                     </div>
+                 </section>
+             `).join('');
+
+             // Add event listeners after rendering all cards
+            addCardEventListeners();
+         }
+
+        // --- Create HTML for a single prompt card ---
+        function createPromptCardHTML(promptStr, cardId) {
+            const variables = [...promptStr.matchAll(/\[(.*?)\]/g)];
+            const uniqueVariables = [...new Set(variables.map(v => v[1]))]; // Get unique variable names
+
+            const inputsHTML = uniqueVariables.map(variable => `
+                <div class="mb-3">
+                    <label for="${cardId}-${variable}" class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">${variable.replace(/_/g, ' ')}:</label>
+                    <input type="text" id="${cardId}-${variable}" data-variable="${variable}"
+                           placeholder="Enter ${variable.replace(/_/g, ' ')}..."
+                           class="variable-input w-full px-3 py-1.5 rounded-md text-sm focus:outline-none">
+                </div>
+            `).join('');
+
+            // Use a shorter, more relevant title
+            const title = promptStr.split(/[\.?!]/)[0].substring(0, 60) + (promptStr.split(/[\.?!]/)[0].length > 60 ? '...' : '');
+
+
+            return `
+                <article id="${cardId}" class="prompt-card">
+                    <div class="prompt-header flex justify-between items-center cursor-pointer" onclick="toggleCollapse('${cardId}')">
+                         <h3 class="font-semibold text-sm md:text-base text-violet-900 dark:text-violet-200 flex-1 pr-2" title="${promptStr}">
+                            ${title}
+                         </h3>
+                         <button class="collapse-toggle p-2 text-violet-500 dark:text-violet-400 text-2xl font-light transform transition-transform duration-300">
+                             +
+                         </button>
+                    </div>
+                    <div class="prompt-content collapsed">
+                         ${inputsHTML ? `<div class="variable-inputs mb-4 border-b border-dashed border-gray-300 dark:border-gray-600 pb-4">${inputsHTML}</div>` : ''}
+
+                         <div class="mb-4">
+                             <p class="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Preview:</p>
+                             <pre class="prompt-preview bg-gray-100/70 dark:bg-gray-800/60 p-3 rounded-md text-xs md:text-sm whitespace-pre-wrap break-words text-gray-700 dark:text-gray-300 min-h-[60px]">${promptStr}</pre>
+                             <textarea class="original-prompt hidden">${promptStr}</textarea> </div>
+
+                         <button class="copy-button btn-primary w-full py-2 rounded-md text-sm font-medium">
+                             Copy Prompt
+                         </button>
+                    </div>
+                </article>
+            `;
+        }
+
+         // --- Add Event Listeners for Cards ---
+         function addCardEventListeners() {
+            document.querySelectorAll('.prompt-card').forEach(card => {
+                const inputs = card.querySelectorAll('.variable-input');
+                const copyButton = card.querySelector('.copy-button');
+                const originalPromptTextarea = card.querySelector('.original-prompt');
+                const previewElement = card.querySelector('.prompt-preview');
+
+                inputs.forEach(input => {
+                    input.addEventListener('input', () => {
+                        updatePreview(card, originalPromptTextarea, previewElement, inputs);
+                    });
+                });
+
+                copyButton.addEventListener('click', () => {
+                    copyPrompt(previewElement, copyButton);
+                });
+            });
+         }
+
+        // --- Toggle Card Collapse ---
+        function toggleCollapse(cardId) {
+            const card = document.getElementById(cardId);
+            const content = card.querySelector('.prompt-content');
+            const toggle = card.querySelector('.collapse-toggle');
+            const isCollapsed = content.classList.toggle('collapsed'); // toggle returns true if class is added (now collapsed)
+
+            if (isCollapsed) {
+                 toggle.textContent = '+';
+                 toggle.style.transform = 'rotate(0deg)';
+            } else {
+                 toggle.textContent = '-';
+                 toggle.style.transform = 'rotate(45deg)'; // Rotate to 'x' like shape
+            }
+        }
+
+
+        // --- Update Preview ---
+        function updatePreview(cardElement, originalPromptTextarea, previewElement, inputs) {
+            let updatedPrompt = originalPromptTextarea.value;
+            inputs.forEach(input => {
+                const variable = input.dataset.variable;
+                const value = input.value.trim();
+                // Use a regex to replace all occurrences of the variable
+                const regex = new RegExp(`\\[${variable.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}\\]`, 'g'); // Escape special regex chars in variable name
+                updatedPrompt = updatedPrompt.replace(regex, value || `[${variable}]`); // Keep placeholder if empty
+            });
+            previewElement.textContent = updatedPrompt;
+        }
+
+        // --- Copy Prompt ---
+        function copyPrompt(previewElement, buttonElement) {
+            const promptText = previewElement.textContent;
+            navigator.clipboard.writeText(promptText).then(() => {
+                const originalText = buttonElement.textContent;
+                buttonElement.textContent = 'Copied!';
+                // Use specific classes for copied state styling
+                buttonElement.classList.add('bg-emerald-500', 'dark:bg-emerald-600');
+                buttonElement.classList.remove('btn-primary'); // Remove general styling class if needed
+
+                setTimeout(() => {
+                    buttonElement.textContent = originalText;
+                    buttonElement.classList.remove('bg-emerald-500', 'dark:bg-emerald-600');
+                    buttonElement.classList.add('btn-primary'); // Add back general styling
+                }, 1500);
+            }).catch(err => {
+                console.error('Failed to copy text: ', err);
+                // Optionally show an error message to the user
+                buttonElement.textContent = 'Error Copying';
+                 setTimeout(() => {
+                    buttonElement.textContent = 'Copy Prompt';
+                 }, 1500);
+            });
+        }
+
+        // --- Show Specific Section (Improved Transition) ---
+        let activeSectionId = null;
+        function showSection(categoryId) {
+            if (categoryId === activeSectionId) return; // Do nothing if already active
+
+             const currentActiveSection = activeSectionId ? document.getElementById(activeSectionId) : null;
+             const nextSection = document.getElementById(categoryId);
+
+             if (currentActiveSection) {
+                 currentActiveSection.classList.remove('visible');
+                 currentActiveSection.classList.add('hidden'); // Hide immediately for positioning
+             }
+
+             if (nextSection) {
+                 nextSection.classList.remove('hidden'); // Make it take space
+                 // Force reflow before adding visible class for transition to work reliably
+                 void nextSection.offsetWidth;
+                 nextSection.classList.add('visible');
+             }
+             activeSectionId = categoryId;
+        }
+
+
+        // --- Set Active Tab Style ---
+        function setActiveTab(categoryId) {
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                if (tab.dataset.target === categoryId) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
+        }
+
+        // --- Run Initialization ---
+        document.addEventListener('DOMContentLoaded', initApp);
+
+    </script>
+
+</body>
+</html>
